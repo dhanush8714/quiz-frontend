@@ -14,7 +14,6 @@ export default function Profile() {
   const [image, setImage] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // ✅ FIX: update state when user changes
   useEffect(() => {
     if (user) {
       setName(user.name || "");
@@ -22,17 +21,8 @@ export default function Profile() {
     }
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="mt-24 text-center text-gray-500">
-        Loading profile...
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
+  if (loading) return <p className="mt-20 text-center">Loading...</p>;
+  if (!user) return <Navigate to="/login" />;
 
   const profileImage = user.profileImage
     ? `${API_URL}${user.profileImage}`
@@ -41,9 +31,12 @@ export default function Profile() {
   // 🔄 Update profile
   async function handleUpdateProfile(e) {
     e.preventDefault();
-    setSaving(true);
+
+    if (!user?.token) return alert("Please login again");
 
     try {
+      setSaving(true);
+
       const res = await fetch(`${API_URL}/api/users/profile`, {
         method: "PUT",
         headers: {
@@ -57,10 +50,9 @@ export default function Profile() {
 
       if (!res.ok) throw new Error(data.message);
 
-      // ✅ FIX: correct key
       localStorage.setItem("user", JSON.stringify(data));
-
       refreshUser();
+
       alert("Profile updated ✅");
     } catch (err) {
       console.error(err);
@@ -73,7 +65,9 @@ export default function Profile() {
   // 🖼 Upload image
   async function handleUploadImage(e) {
     e.preventDefault();
-    if (!image) return alert("Please select an image");
+
+    if (!image) return alert("Select an image first");
+    if (!user?.token) return alert("Please login again");
 
     try {
       const formData = new FormData();
@@ -106,6 +100,8 @@ export default function Profile() {
 
   // ❌ Delete image
   async function handleDeleteImage() {
+    if (!user?.token) return alert("Please login again");
+
     try {
       const res = await fetch(`${API_URL}/api/users/profile-image`, {
         method: "DELETE",
@@ -114,7 +110,7 @@ export default function Profile() {
         },
       });
 
-      if (!res.ok) throw new Error("Failed to delete image");
+      if (!res.ok) throw new Error("Delete failed");
 
       localStorage.setItem(
         "user",
@@ -131,11 +127,8 @@ export default function Profile() {
 
   return (
     <div className="max-w-md mx-auto mt-24 bg-white p-6 rounded-xl shadow">
-      <h2 className="text-xl font-bold mb-4 text-center">
-        Edit Profile
-      </h2>
+      <h2 className="text-xl font-bold mb-4 text-center">Profile</h2>
 
-      {/* Profile Image */}
       <div className="flex flex-col items-center mb-4">
         <img
           src={profileImage}
@@ -146,54 +139,37 @@ export default function Profile() {
         {user?.profileImage && (
           <button
             onClick={handleDeleteImage}
-            className="mt-2 text-sm text-red-500 flex items-center gap-1"
+            className="mt-2 text-red-500 flex items-center gap-1"
           >
             <FaTrash /> Remove Image
           </button>
         )}
       </div>
 
-      {/* Upload */}
-      <form onSubmit={handleUploadImage} className="mb-4">
-        <label
-          htmlFor="profileImage"
-          className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-dashed rounded cursor-pointer"
-        >
-          <FiUpload />
-          Choose Image
-        </label>
-
+      <form onSubmit={handleUploadImage}>
         <input
-          id="profileImage"
           type="file"
-          accept="image/*"
-          className="hidden"
           onChange={(e) => setImage(e.target.files[0])}
         />
-
         <button className="w-full mt-2 bg-green-600 text-white py-2 rounded">
           Upload Image
         </button>
       </form>
 
-      {/* Update */}
-      <form onSubmit={handleUpdateProfile}>
+      <form onSubmit={handleUpdateProfile} className="mt-4">
         <input
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-2 p-2 border"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
         <input
-          className="w-full mb-4 p-2 border rounded"
+          className="w-full mb-2 p-2 border"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <button
-          disabled={saving}
-          className="w-full bg-green-600 text-white py-2 rounded"
-        >
+        <button className="w-full bg-green-600 text-white py-2 rounded">
           {saving ? "Saving..." : "Save Changes"}
         </button>
       </form>
