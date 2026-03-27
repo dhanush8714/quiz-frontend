@@ -1,35 +1,40 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react";
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true) // 🔥 ADD THIS
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // 🔁 Load user from localStorage on app start / refresh
+  // 🔁 Load user on refresh
   useEffect(() => {
-    const storedUser = localStorage.getItem("userInfo")
+    const storedUser = localStorage.getItem("user"); // ✅ FIXED
+
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
+      setUser(JSON.parse(storedUser));
     }
-    setLoading(false) // 🔥 AUTH LOADED
-  }, [])
 
+    setLoading(false);
+  }, []);
+
+  // ✅ Login
   function login(data) {
-    localStorage.setItem("userInfo", JSON.stringify(data))
-    setUser(data)
+    localStorage.setItem("user", JSON.stringify(data)); // ✅ FIXED
+    setUser(data);
   }
 
+  // ✅ Logout
   function logout() {
-    localStorage.removeItem("userInfo")
-    setUser(null)
+    localStorage.removeItem("user"); // ✅ FIXED
+    setUser(null);
   }
 
-  // 🔁 FORCE refresh user (used after profile update)
+  // 🔁 Refresh user after update
   function refreshUser() {
-    const storedUser = localStorage.getItem("userInfo")
+    const storedUser = localStorage.getItem("user"); // ✅ FIXED
+
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
+      setUser(JSON.parse(storedUser));
     }
   }
 
@@ -39,7 +44,7 @@ export function AuthProvider({ children }) {
     >
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext);
