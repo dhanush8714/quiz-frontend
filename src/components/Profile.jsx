@@ -1,18 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
 import { FaTrash } from "react-icons/fa";
 import { FiUpload } from "react-icons/fi";
 
-const API_URL = "https://quiz-backend-05h6.onrender.com"; 
+const API_URL = "https://quiz-backend-05h6.onrender.com";
 
 export default function Profile() {
   const { user, loading, refreshUser } = useAuth();
 
-  const [name, setName] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [image, setImage] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  // ✅ FIX: update state when user changes
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "");
+      setEmail(user.email || "");
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -49,10 +57,14 @@ export default function Profile() {
 
       if (!res.ok) throw new Error(data.message);
 
-      localStorage.setItem("userInfo", JSON.stringify(data));
+      // ✅ FIX: correct key
+      localStorage.setItem("user", JSON.stringify(data));
+
       refreshUser();
+      alert("Profile updated ✅");
     } catch (err) {
       console.error(err);
+      alert(err.message);
     } finally {
       setSaving(false);
     }
@@ -61,7 +73,7 @@ export default function Profile() {
   // 🖼 Upload image
   async function handleUploadImage(e) {
     e.preventDefault();
-    if (!image) return;
+    if (!image) return alert("Please select an image");
 
     try {
       const formData = new FormData();
@@ -77,35 +89,43 @@ export default function Profile() {
 
       const data = await res.json();
 
+      if (!res.ok) throw new Error(data.message);
+
       localStorage.setItem(
-        "userInfo",
+        "user",
         JSON.stringify({ ...user, profileImage: data.profileImage })
       );
 
       refreshUser();
+      alert("Image uploaded ✅");
     } catch (err) {
       console.error(err);
+      alert(err.message);
     }
   }
 
   // ❌ Delete image
   async function handleDeleteImage() {
     try {
-      await fetch(`${API_URL}/api/users/profile-image`, {
+      const res = await fetch(`${API_URL}/api/users/profile-image`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
       });
 
+      if (!res.ok) throw new Error("Failed to delete image");
+
       localStorage.setItem(
-        "userInfo",
+        "user",
         JSON.stringify({ ...user, profileImage: "" })
       );
 
       refreshUser();
+      alert("Image removed ✅");
     } catch (err) {
       console.error(err);
+      alert(err.message);
     }
   }
 
@@ -115,6 +135,7 @@ export default function Profile() {
         Edit Profile
       </h2>
 
+      {/* Profile Image */}
       <div className="flex flex-col items-center mb-4">
         <img
           src={profileImage}
@@ -122,7 +143,7 @@ export default function Profile() {
           alt="profile"
         />
 
-        {user.profileImage && (
+        {user?.profileImage && (
           <button
             onClick={handleDeleteImage}
             className="mt-2 text-sm text-red-500 flex items-center gap-1"
