@@ -3,24 +3,14 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { FaHtml5, FaJsSquare, FaReact, FaPython, FaCode } from "react-icons/fa";
 
-const API_URL = "https://quiz-backend-05h6.onrender.com"; // 
+const API_URL = "https://quiz-backend-05h6.onrender.com";
 
 const categoryIcons = {
-  HTML: (
-    <FaHtml5 className="text-orange-500 text-2xl group-hover:animate-bounce" />
-  ),
-  JavaScript: (
-    <FaJsSquare className="text-yellow-400 text-2xl group-hover:animate-pulse" />
-  ),
-  React: (
-    <FaReact className="text-blue-500 text-2xl transition-transform duration-500 group-hover:rotate-180" />
-  ),
-  Python: (
-    <FaPython className="text-green-500 text-2xl group-hover:animate-wiggle" />
-  ),
-  "C++": (
-    <FaCode className="text-indigo-500 text-2xl transition-transform duration-300 group-hover:scale-125" />
-  ),
+  HTML: <FaHtml5 className="text-orange-500 text-2xl" />,
+  JavaScript: <FaJsSquare className="text-yellow-400 text-2xl" />,
+  React: <FaReact className="text-blue-500 text-2xl" />,
+  Python: <FaPython className="text-green-500 text-2xl" />,
+  "C++": <FaCode className="text-indigo-500 text-2xl" />,
 };
 
 function getRingColor(percent) {
@@ -51,7 +41,13 @@ export default function RecentActivity() {
 
         const data = await res.json();
 
-        // ✅ FIX: prevent crash
+        // 🔥 IMPORTANT FIX
+        if (!res.ok) {
+          console.error("API ERROR:", data);
+          setActivities([]);
+          return;
+        }
+
         if (Array.isArray(data)) {
           setActivities(data.slice(0, 5));
         } else {
@@ -89,7 +85,10 @@ export default function RecentActivity() {
 
       <div className="space-y-4">
         {activities.map((item) => {
-          const percent = Math.round((item.score / item.total) * 100);
+          const percent =
+            item.total > 0
+              ? Math.round((item.score / item.total) * 100)
+              : 0;
 
           return (
             <div
@@ -106,7 +105,7 @@ export default function RecentActivity() {
               className="bg-white p-4 rounded-xl flex justify-between items-center shadow cursor-pointer hover:shadow-md transition"
             >
               <div className="flex items-center gap-3">
-                <div className="group w-10 h-10 flex items-center justify-center bg-gray-100 rounded-lg">
+                <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-lg">
                   {categoryIcons[item.category] || (
                     <FaCode className="text-gray-500 text-2xl" />
                   )}
@@ -115,7 +114,9 @@ export default function RecentActivity() {
                 <div>
                   <h3 className="font-medium">{item.category}</h3>
                   <p className="text-xs text-gray-500">
-                    {new Date(item.createdAt).toLocaleString()}
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleString()
+                      : "No date"}
                   </p>
                 </div>
               </div>

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FiClock } from "react-icons/fi";
 
-const API_URL = "https://quiz-backend-05h6.onrender.com"; 
+const API_URL = "https://quiz-backend-05h6.onrender.com";
 
 export default function Quiz({ score, setScore }) {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ export default function Quiz({ score, setScore }) {
   const [time, setTime] = useState(15);
   const [loading, setLoading] = useState(true);
 
+  // 🔀 Shuffle
   function shuffleArray(arr) {
     const shuffled = [...arr];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -27,6 +28,7 @@ export default function Quiz({ score, setScore }) {
     return shuffled;
   }
 
+  // 📥 Fetch questions
   useEffect(() => {
     async function fetchQuestions() {
       setLoading(true);
@@ -37,7 +39,7 @@ export default function Quiz({ score, setScore }) {
 
       try {
         const res = await fetch(
-          `${API_URL}/api/questions/${selectedCategory}`
+          `${API_URL}/api/questions/${encodeURIComponent(selectedCategory)}`
         );
 
         const data = await res.json();
@@ -59,6 +61,7 @@ export default function Quiz({ score, setScore }) {
     fetchQuestions();
   }, [selectedCategory, setScore]);
 
+  // ⏱ Timer
   useEffect(() => {
     if (selected !== null || loading) return;
 
@@ -74,15 +77,18 @@ export default function Quiz({ score, setScore }) {
   const currentQuestion = questions[current];
   const progress = ((current + 1) / questions.length) * 100;
 
+  // 🎯 Click
   function handleOptionClick(index) {
     if (selected !== null) return;
+
     setSelected(index);
 
-    if (index === currentQuestion.correctAnswer) {
+    if (index === Number(currentQuestion.correctAnswer)) {
       setScore((prev) => prev + 1);
     }
   }
 
+  // ➡️ Next
   async function handleNext() {
     setSelected(null);
     setTime(15);
@@ -90,7 +96,6 @@ export default function Quiz({ score, setScore }) {
     if (current < questions.length - 1) {
       setCurrent((prev) => prev + 1);
     } else {
-      // ✅ SAVE ATTEMPT
       if (user?.token) {
         try {
           await fetch(`${API_URL}/api/attempts`, {
@@ -120,6 +125,7 @@ export default function Quiz({ score, setScore }) {
     }
   }
 
+  // Loading
   if (loading) {
     return <div className="text-center">Loading questions...</div>;
   }
@@ -130,6 +136,7 @@ export default function Quiz({ score, setScore }) {
 
   return (
     <div className="bg-white w-[340px] p-6 rounded-xl shadow-lg">
+      {/* Progress */}
       <div className="w-full h-2 bg-gray-200 rounded-full mb-4">
         <div
           className="h-2 bg-blue-600 rounded-full"
@@ -137,6 +144,7 @@ export default function Quiz({ score, setScore }) {
         />
       </div>
 
+      {/* Header */}
       <div className="flex justify-between mb-3 text-sm text-gray-500">
         <span>
           {selectedCategory} • {current + 1}/{questions.length}
@@ -146,19 +154,21 @@ export default function Quiz({ score, setScore }) {
         </span>
       </div>
 
+      {/* Question */}
       <h2 className="text-lg font-semibold mb-4">
         {currentQuestion.question}
       </h2>
 
+      {/* Options */}
       <div className="space-y-2">
         {currentQuestion.options.map((option, index) => {
-          let style = "w-full px-4 py-2 border rounded";
+          let style = "w-full px-4 py-2 border rounded transition";
 
           if (selected !== null) {
-            if (index === currentQuestion.correctAnswer) {
-              style += " bg-green-500 text-white";
+            if (index === Number(currentQuestion.correctAnswer)) {
+              style += " bg-green-500 text-white"; // ✅ correct
             } else if (index === selected) {
-              style += " bg-red-500 text-white";
+              style += " bg-red-500 text-white"; // ❌ wrong
             } else {
               style += " opacity-50";
             }
@@ -176,6 +186,7 @@ export default function Quiz({ score, setScore }) {
         })}
       </div>
 
+      {/* Next */}
       {selected !== null && (
         <button
           onClick={handleNext}

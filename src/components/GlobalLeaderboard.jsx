@@ -3,25 +3,27 @@ import { useAuth } from "../context/AuthContext"
 import { FaGlobeAsia } from "react-icons/fa"
 
 
+const API_URL = "https://quiz-backend-05h6.onrender.com";
+
 export default function GlobalLeaderboard() {
-  const { user } = useAuth()
-  const [scores, setScores] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { user } = useAuth();
+  const [scores, setScores] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
-    fetch("http://localhost:5000/api/attempts/leaderboard", {
+    fetch(`${API_URL}/api/attempts/leaderboard`, {
       headers: {
         Authorization: `Bearer ${user.token}`,
       },
     })
       .then((res) => res.json())
       .then((data) => {
-        setScores(data)
-        setLoading(false)
-      })
-  }, [user])
+        setScores(data);
+        setLoading(false);
+      });
+  }, [user]);
 
   if (!user) {
     return (
