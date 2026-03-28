@@ -59,15 +59,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* 🔐 Protect Profile (optional but better) */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedAdmin fallback={<Login />}>
-                <Profile />
-              </ProtectedAdmin>
-            }
-          />
+          {/* 🔐 Protect Profile for any authenticated user */}
+          <Route path="/profile" element={<Profile />} />
 
           {/* Admin */}
           <Route
