@@ -119,6 +119,14 @@ export default function Navbar({ score }) {
                     Profile
                   </button>
 
+                    <button onClick={() => goTo("/leaderboard")} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+                    LeaderBoard
+                  </button>
+
+                    <button onClick={() => goTo("/leaderboard/global")} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+                    GloballeaderBoard
+                  </button>
+
                   {user.isAdmin && (
                     <button onClick={() => goTo("/admin")} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
                       Admin Panel
